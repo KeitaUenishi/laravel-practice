@@ -21,6 +21,8 @@ class ThreadWithResponseResource extends JsonResource
             'content' => $this->content,
             'created_at' => $this->created_at->isoFormat('YYYY/M/D/(ddd) HH:mm:ss'),
             'updated_at' => $this->updated_at->isoFormat('YYYY/M/D/(ddd) HH:mm:ss'),
+            'responses_count' => $this->responses_count,
+            'responses' => ResponseResource::collection($this->responses->sortBy('response_no'))
         ];
     }
 }

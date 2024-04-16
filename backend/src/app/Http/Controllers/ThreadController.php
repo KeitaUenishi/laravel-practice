@@ -16,8 +16,15 @@ class ThreadController extends Controller
      */
     public function index()
     {
-        // Treadのデータをall() で全件取得し、Resourceを使って整形して返す
-        $threads = Thread::all();
+        // withを使用することでリレーション先のデータをまとめて取得することができる
+        // withCountを使用することでリレーション先のデータの件数を取得することができる
+        $threads = Thread::with([
+            'responses' => function ($query) {
+                $query->latest()->limit(10);
+            },
+        ])
+            ->withCount('responses')
+            ->get();
 
         return ThreadWithResponseResource::collection($threads);
     }
@@ -49,7 +56,7 @@ class ThreadController extends Controller
      */
     public function show(int $id)
     {
-        $thread = Thread::findOrFail($id);
+        $thread = Thread::with('responses')->withCount('responses')->findOrFail($id);
 
         return new ThreadWithResponseResource($thread);
     }
