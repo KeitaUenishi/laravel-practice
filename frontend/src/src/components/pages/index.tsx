@@ -2,8 +2,18 @@ import { Layout } from "@/components/Layout";
 import { SearchForm } from "../ui/SearchForm";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
+import { useState } from "react";
+import { RegisterSakeModal } from "../ui/RegisterSakeModal";
 
 export const MainPage = () => {
+  const [onModalOpen, setOnModalOpen] = useState(false);
+
+  const handleModalOpen = () => {
+    setOnModalOpen(true);
+  };
+  const handleSubmit = () => {
+    alert("clicked!");
+  };
   return (
     <Layout>
       <section className="w-full py-24 px-2">
@@ -12,7 +22,7 @@ export const MainPage = () => {
             <SearchForm />
           </div>
           <div className="max-w-full mx-auto mt-12">
-            <Button onClick={() => alert("clicked!")}>お酒を登録する</Button>
+            <Button onClick={() => handleModalOpen()}>お酒を登録する</Button>
           </div>
         </section>
         <section className="flex flex-wrap justify-between items-stretch gap-8 py-12">
@@ -32,6 +42,13 @@ export const MainPage = () => {
           </div>
         </section>
       </section>
+      <RegisterSakeModal
+        title="お酒の新規登録"
+        buttonType="primary"
+        buttonText="登録"
+        isOpen={onModalOpen}
+        closeModal={() => setOnModalOpen(false)}
+      />
     </Layout>
   );
 };
