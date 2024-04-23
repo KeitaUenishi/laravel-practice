@@ -1,4 +1,4 @@
-import Image from "next/legacy/image";
+import Image from "next/image";
 
 export const Card = ({
   title,
@@ -15,9 +15,13 @@ export const Card = ({
         <Image
           className="rounded-t-lg absolute top-0 left-0 w-full h-full"
           src={imageUrl}
-          alt=""
-          layout="fill"
-          objectFit="cover"
+          alt="登録したお酒の画像"
+          fill
+          sizes="100%"
+          priority={true}
+          style={{
+            objectFit: "cover",
+          }}
         />
       </div>
       <div className="p-5">
