@@ -6,6 +6,8 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\Log;
+
 class CategoryController extends Controller
 {
     /**
@@ -16,7 +18,8 @@ class CategoryController extends Controller
     public function index()
     {
         $category = Category::all();
-
+        
+        Log::debug($category);
         return CategoryResource::collection($category);
     }
 
@@ -28,7 +31,12 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        Log::debug(($request));
+        $category = Category::create($request->only(
+            ['name', 'param1_name', 'param2_name', 'param3_name', 'param4_name', 'param5_name']
+        ));
+
+        return new CategoryResource($category);
     }
 
     /**

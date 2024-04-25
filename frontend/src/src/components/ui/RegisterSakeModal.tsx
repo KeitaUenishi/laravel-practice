@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useCallback } from "react";
 import { ModalBase, ModalProps } from "./ModalBase";
 import { Button } from "./Button";
 import { useForm } from "react-hook-form";
@@ -19,7 +19,7 @@ type Input = {
   param: CategoryParam<{ name: string; value?: CategoryValue }>;
 };
 export const RegisterSakeModal = (props: ModalProps) => {
-  const { data: category } = useSWR<{ data: Category[] }>(
+  const { data: category, mutate } = useSWR<{ data: Category[] }>(
     `${apiUrl}/category`,
     fetcher
   );
@@ -38,8 +38,30 @@ export const RegisterSakeModal = (props: ModalProps) => {
     console.log(`hi!, ${JSON.stringify(data)}`);
   };
 
-  const categoryOnSubmit = (data: any) => {
+  const onSubmitCategory = async (data: any) => {
     console.log(`category!, ${JSON.stringify(data)}`);
+    const postData: { [key: string]: string } = {
+      name: data.categoryName,
+    };
+    data.param
+      .filter((item: { name: string }) => item.name)
+      .map((item: { name: string }, idx: number) => {
+        postData[`param${idx + 1}_name`] = item.name;
+      });
+    console.log("postData", postData);
+
+    try {
+      const res = await fetch(`${apiUrl}/category`, {
+        method: "POST",
+        mode: "cors", // MEMO: なくても通る？
+        body: JSON.stringify(postData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (error) {
+      console.log("error", error);
+    }
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +92,7 @@ export const RegisterSakeModal = (props: ModalProps) => {
     <ModalBase {...props}>
       {isCategoryView ? (
         <>
-          <form onSubmit={handleSubmit(categoryOnSubmit)}>
+          <form onSubmit={handleSubmit(onSubmitCategory)}>
             <TextInput
               placeholder="カテゴリ名"
               obj={register("categoryName", {

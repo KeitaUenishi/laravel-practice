@@ -28,5 +28,6 @@ Route::get('/threads/{id}', [ThreadController::class, 'show']);
 
 Route::get('sake', [SakeController::class, 'index']);
 Route::get('category', [CategoryController::class, 'index']);
+Route::post('category', [CategoryController::class, 'store']);
 
 Route::post('/threads/{theadId}/responses', [ResponseController::class, 'store']);
