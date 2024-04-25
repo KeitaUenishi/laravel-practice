@@ -1,8 +1,13 @@
-import React, { ChangeEvent, useEffect } from "react";
+import React, { ChangeEvent } from "react";
 import { ModalBase, ModalProps } from "./ModalBase";
 import { Button } from "./Button";
 import { useForm } from "react-hook-form";
 import Image from "next/image";
+import useSWR from "swr";
+import { Category } from "@/types";
+import { apiUrl } from "@/constants";
+import { fetcher } from "@/lib/feacher";
+import { TextInput } from "./TextInput";
 
 type CategoryParam<T> = [T, T, T, T, T];
 type CategoryValue = 1 | 2 | 3 | 4 | 5 | undefined;
@@ -14,6 +19,10 @@ type Input = {
   param: CategoryParam<{ name: string; value?: CategoryValue }>;
 };
 export const RegisterSakeModal = (props: ModalProps) => {
+  const { data: category } = useSWR<{ data: Category[] }>(
+    `${apiUrl}/category`,
+    fetcher
+  );
   const {
     register,
     handleSubmit,
@@ -21,7 +30,9 @@ export const RegisterSakeModal = (props: ModalProps) => {
   } = useForm<Input>();
   const [previewImage, setPreviewImage] = React.useState<string>("");
   const [isCategoryView, setIsCategoryView] = React.useState<boolean>(false);
-  const [categoryValue, setCategoryValue] = React.useState<string>("");
+  const [categoryValue, setCategoryValue] = React.useState<
+    Category | undefined
+  >(undefined);
 
   const onSubmit = (data: any) => {
     console.log(`hi!, ${JSON.stringify(data)}`);
@@ -42,17 +53,27 @@ export const RegisterSakeModal = (props: ModalProps) => {
     }
   };
 
-  // TODO: inputの共通化
+  const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value === "" || !category) {
+      return setCategoryValue(undefined);
+    }
+    const selectCategory = category.data.find(
+      ({ id }) => id.toString() === e.target.value
+    );
+
+    if (selectCategory) {
+      setCategoryValue(selectCategory);
+    }
+  };
+
   return (
     <ModalBase {...props}>
       {isCategoryView ? (
         <>
           <form onSubmit={handleSubmit(categoryOnSubmit)}>
-            <input
-              type="text"
-              className="block w-full p-4 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+            <TextInput
               placeholder="カテゴリ名"
-              {...register("categoryName", {
+              obj={register("categoryName", {
                 required: "カテゴリ名を入力してください",
               })}
             />
@@ -63,55 +84,45 @@ export const RegisterSakeModal = (props: ModalProps) => {
               <label className="block text-sm text-gray-600">
                 カテゴリに紐づくパラメータを設定
               </label>
-              <input
-                type="text"
-                className="block w-full p-4 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+              <TextInput
                 placeholder="パラメータ1"
-                {...register("param.0.name", {
+                obj={register("param.0.name", {
                   required: "パラメータ1を入力してください",
                 })}
               />
               <span className="text-red-500">
                 {errors ? errors.param?.[0]?.message : ""}
               </span>
-              <input
-                type="text"
-                className="block w-full p-4 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+              <TextInput
                 placeholder="パラメータ2"
-                {...register("param.1.name", {
+                obj={register("param.1.name", {
                   required: "パラメータ2を入力してください",
                 })}
               />
               <span className="text-red-500">
                 {errors ? errors.param?.[1]?.message : ""}
               </span>{" "}
-              <input
-                type="text"
-                className="block w-full p-4 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+              <TextInput
                 placeholder="パラメータ3"
-                {...register("param.2.name", {
+                obj={register("param.2.name", {
                   required: "パラメータ3を入力してください",
                 })}
               />
               <span className="text-red-500">
                 {errors ? errors.param?.[2]?.message : ""}
               </span>{" "}
-              <input
-                type="text"
-                className="block w-full p-4 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+              <TextInput
                 placeholder="パラメータ4"
-                {...register("param.3.name", {
+                obj={register("param.3.name", {
                   required: "パラメータ4を入力してください",
                 })}
               />
               <span className="text-red-500">
                 {errors ? errors.param?.[3]?.message : ""}
               </span>{" "}
-              <input
-                type="text"
-                className="block w-full p-4 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+              <TextInput
                 placeholder="パラメータ5"
-                {...register("param.4.name", {
+                obj={register("param.4.name", {
                   required: "パラメータ5を入力してください",
                 })}
               />
@@ -176,65 +187,66 @@ export const RegisterSakeModal = (props: ModalProps) => {
             <select
               className="block w-full p-4 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 mt-4"
               {...register("category", {
-                onChange: (e: ChangeEvent<HTMLSelectElement>) =>
-                  setCategoryValue(e.target.value),
+                onChange: (e) => handleCategoryChange(e),
               })}
             >
               <option key="default" value={""}>
                 カテゴリを選択
               </option>
-              {dummySelect.map((item, idx) => {
+              {category?.data.map((item) => {
                 return (
-                  <option key={idx} value={item.value}>
-                    {item.label}
+                  <option key={item.id} value={item.id}>
+                    {item.name}
                   </option>
                 );
               })}
             </select>
             <div className="mt-4">
               <Button
-                buttonType={categoryValue === "" ? "primary" : "secondary"}
+                buttonType={categoryValue ? "secondary" : "primary"}
                 onClick={() => setIsCategoryView(true)}
-                disabled={categoryValue === "" ? false : true}
+                disabled={categoryValue ? true : false}
                 type="button"
               >
                 カテゴリ新規登録
               </Button>
             </div>
-            {categoryValue !== "" && (
+            {categoryValue && category && (
               <>
                 <div className="mt-8 flex flex-col">
-                  {dummyParam.map((item, idx) => {
-                    return (
-                      <React.Fragment key={idx}>
-                        <label className="block mt-4 text-md text-gray-600">
-                          {item.name}
-                        </label>
-                        <select
-                          className="block w-full p-4 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-                          {...register(
-                            `param.${idx}.value` as
-                              | "param.0.value"
-                              | "param.1.value"
-                              | "param.2.value"
-                              | "param.3.value"
-                              | "param.4.value"
-                          )}
-                        >
-                          <option key="default" value={""}>
-                            未選択
-                          </option>
-                          {[...Array(5)].map((_, idx) => {
-                            return (
-                              <option key={idx} value={idx}>
-                                {idx + 1}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </React.Fragment>
-                    );
-                  })}
+                  {Object.entries(categoryValue ?? {})
+                    .filter(([x]) => x.startsWith("param"))
+                    .map(([_, name], idx) => {
+                      return (
+                        <React.Fragment key={idx}>
+                          <label className="block mt-4 text-md text-gray-600">
+                            {name}
+                          </label>
+                          <select
+                            className="block w-full p-4 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                            {...register(
+                              `param.${idx}.value` as
+                                | "param.0.value"
+                                | "param.1.value"
+                                | "param.2.value"
+                                | "param.3.value"
+                                | "param.4.value"
+                            )}
+                          >
+                            <option key="default" value={""}>
+                              未選択
+                            </option>
+                            {[...Array(5)].map((_, optionIdx) => {
+                              return (
+                                <option key={optionIdx} value={optionIdx}>
+                                  {optionIdx + 1}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        </React.Fragment>
+                      );
+                    })}
                 </div>
                 <div className="mt-8 flex justify-end gap-x-2 pt-4">
                   <Button buttonType="primary">新規登録</Button>
@@ -247,21 +259,3 @@ export const RegisterSakeModal = (props: ModalProps) => {
     </ModalBase>
   );
 };
-
-const dummySelect = [
-  { value: "1", label: "日本酒" },
-  { value: "2", label: "焼酎" },
-  { value: "3", label: "ワイン" },
-  { value: "4", label: "ビール" },
-  { value: "5", label: "ウイスキー" },
-  { value: "6", label: "カクテル" },
-  { value: "7", label: "その他" },
-];
-
-const dummyParam: CategoryParam<{ name: string; value?: CategoryValue }> = [
-  { name: "うま味", value: undefined },
-  { name: "酸味", value: undefined },
-  { name: "甘味", value: undefined },
-  { name: "苦味", value: undefined },
-  { name: "香り", value: undefined },
-];

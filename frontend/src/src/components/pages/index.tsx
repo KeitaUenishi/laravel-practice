@@ -4,42 +4,55 @@ import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { useState } from "react";
 import { RegisterSakeModal } from "../ui/RegisterSakeModal";
+import useSWR from "swr";
+import { fetcher } from "@/lib/feacher";
+import { SakeList } from "@/types";
+import { Loading } from "../ui/Loading";
+import { apiUrl } from "@/constants";
 
 export const MainPage = () => {
+  const { data: sake, isLoading } = useSWR<{ data: SakeList }>(
+    `${apiUrl}/sake`,
+    fetcher
+  );
+
   const [onModalOpen, setOnModalOpen] = useState(false);
 
   const handleModalOpen = () => {
     setOnModalOpen(true);
   };
-  const handleSubmit = () => {
-    alert("clicked!");
-  };
   return (
     <Layout>
-      <section className="w-full py-24 px-2">
+      <section className="py-24 px-2">
         <section>
-          <div className="max-w-full mx-auto">
+          <div className="mx-auto">
             <SearchForm />
           </div>
-          <div className="max-w-full mx-auto mt-12">
+          <div className="mx-auto mt-12">
             <Button onClick={() => handleModalOpen()}>お酒を登録する</Button>
           </div>
         </section>
         <section className="flex flex-wrap justify-between items-stretch gap-8 py-12">
-          {dummy.map((item, key) => {
-            return (
-              <div className="sm:w-5/12 w-full mb-8" key={key}>
-                <Card
-                  title={item.title}
-                  description={item.description}
-                  imageUrl={item.imageUrl}
-                />
+          {isLoading ? (
+            <Loading />
+          ) : (
+            <>
+              {sake?.data.map((item, key) => {
+                return (
+                  <div className="sm:w-5/12 w-full mb-8" key={key}>
+                    <Card
+                      title={item.name}
+                      description={"ほげほげふがふがぴよぴよ"}
+                      imageUrl={item.imageUrl}
+                    />
+                  </div>
+                );
+              })}
+              <div className="w-full mt-12">
+                <Button onClick={() => alert("clicked!")}>次の10件</Button>
               </div>
-            );
-          })}
-          <div className="w-full mt-12">
-            <Button onClick={() => alert("clicked!")}>次の10件</Button>
-          </div>
+            </>
+          )}
         </section>
       </section>
       <RegisterSakeModal
@@ -52,37 +65,3 @@ export const MainPage = () => {
     </Layout>
   );
 };
-
-const dummy = [
-  {
-    title: "ぽんしゅ",
-    description:
-      "日本酒のおすすめ日本酒のおすすめ日本酒のおすすめ日本酒のおすすめ日本酒のおすすめ日本酒のおすすめ",
-    imageUrl: "/dummyImage.png",
-  },
-  {
-    title: "ぽんしゅ",
-    description: "日本酒のおすすめ",
-    imageUrl: "/dummyImage.png",
-  },
-  {
-    title: "ぽんしゅ",
-    description: "日本酒のおすすめ",
-    imageUrl: "/dummyImage.png",
-  },
-  {
-    title: "ぽんしゅ",
-    description: "日本酒のおすすめ",
-    imageUrl: "/dummyImage.png",
-  },
-  {
-    title: "ぽんしゅ",
-    description: "日本酒のおすすめ",
-    imageUrl: "/dummyImage.png",
-  },
-  {
-    title: "ぽんしゅ",
-    description: "日本酒のおすすめ",
-    imageUrl: "/dummyImage.png",
-  },
-];
